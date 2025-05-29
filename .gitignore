@@ -46,3 +46,4 @@ bt.snap
 
 # localnet spec
 scripts/specs/local.json
+.cursor/
