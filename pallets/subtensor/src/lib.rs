@@ -628,7 +628,8 @@ pub mod pallet {
     #[pallet::type_value]
     /// Default value for weights set rate limit.
     pub fn DefaultWeightsSetRateLimit<T: Config>() -> u64 {
-        100
+        let tempo = T::InitialTempo::get() as u64;
+        sp_std::cmp::max(1, tempo / 5)
     }
     #[pallet::type_value]
     /// Default block number at registration.

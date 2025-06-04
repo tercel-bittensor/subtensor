@@ -72,3 +72,13 @@ pub const INITIAL_CHILDKEY_TAKE_RATELIMIT: u64 = 5;
 // It specifies how many blocks must pass before such an operation can be performed again. In production, this is set to a long period (e.g., 216,000 blocks ≈ 30 days),
 // while in local development/testing, it is much shorter to facilitate rapid testing.
 // ---
+
+4. set_weights 的冷却区块数）的默认值
+pallets/subtensor/src/lib.rs 中，WeightsSetRateLimit 是一个存储项，每个 netuid 都有自己的值。
+通常 DefaultWeightsSetRateLimit <= INITIAL_SUBNET_TEMPO
+```rust
+    /// Default value for weights set rate limit.
+    pub fn DefaultWeightsSetRateLimit<T: Config>() -> u64 {
+        100
+    }
+```
