@@ -73,9 +73,9 @@ pub const INITIAL_CHILDKEY_TAKE_RATELIMIT: u64 = 5;
 // while in local development/testing, it is much shorter to facilitate rapid testing.
 // ---
 
-4. set_weights 的冷却区块数）的默认值
-pallets/subtensor/src/lib.rs 中，WeightsSetRateLimit 是一个存储项，每个 netuid 都有自己的值。
-通常 DefaultWeightsSetRateLimit <= INITIAL_SUBNET_TEMPO
+4. The default cooldown block number for set_weights
+In `pallets/subtensor/src/lib.rs`, `WeightsSetRateLimit` is a storage item, and each `netuid` has its own value.
+Usually, `DefaultWeightsSetRateLimit <= INITIAL_SUBNET_TEMPO`
 ```rust
     /// Default value for weights set rate limit.
     pub fn DefaultWeightsSetRateLimit<T: Config>() -> u64 {
