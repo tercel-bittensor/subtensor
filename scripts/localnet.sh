@@ -6,19 +6,46 @@ NO_PURGE=0
 # Check if `--build-only` passed as parameter
 BUILD_ONLY=0
 
-for arg in "$@"; do
-  if [ "$arg" = "--no-purge" ]; then
-    NO_PURGE=1
-  elif [ "$arg" = "--build-only" ]; then
-    BUILD_ONLY=1
-  fi
+CUSTOM_BASE_PATH=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --no-purge)
+      NO_PURGE=1
+      shift
+      ;;
+    --build-only)
+      BUILD_ONLY=1
+      shift
+      ;;
+    --base-path)
+      CUSTOM_BASE_PATH="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
 done
+
 
 # Determine the directory this script resides in. This allows invoking it from any location.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 # The base directory of the subtensor project
 BASE_DIR="$SCRIPT_DIR/.."
+
+if [ -z "$CUSTOM_BASE_PATH" ]; then
+  BASE_PATH_ROOT="/tmp"
+elif [[ "$CUSTOM_BASE_PATH" != /* ]]; then
+  BASE_PATH_ROOT="$BASE_DIR/.data/$CUSTOM_BASE_PATH"
+  mkdir -p $BASE_PATH_ROOT
+else
+  BASE_PATH_ROOT="$CUSTOM_BASE_PATH"
+fi
+
+ALICE_BASE_PATH="$BASE_PATH_ROOT/alice"
+BOB_BASE_PATH="$BASE_PATH_ROOT/bob"
 
 # Get the value of fast_blocks from the first argument
 fast_blocks=${1:-"True"}
@@ -65,15 +92,15 @@ echo "*** Building chainspec..."
 echo "*** Chainspec built and output to file"
 
 # Generate node keys
-"$BUILD_DIR/release/node-subtensor" key generate-node-key --chain="$FULL_PATH" --base-path /tmp/alice
-"$BUILD_DIR/release/node-subtensor" key generate-node-key --chain="$FULL_PATH" --base-path /tmp/bob
+"$BUILD_DIR/release/node-subtensor" key generate-node-key --chain="$FULL_PATH" --base-path "$ALICE_BASE_PATH"
+"$BUILD_DIR/release/node-subtensor" key generate-node-key --chain="$FULL_PATH" --base-path "$BOB_BASE_PATH"
 
 if [ $NO_PURGE -eq 1 ]; then
   echo "*** Purging previous state skipped..."
 else
   echo "*** Purging previous state..."
-  "$BUILD_DIR/release/node-subtensor" purge-chain -y --base-path /tmp/bob --chain="$FULL_PATH" >/dev/null 2>&1
-  "$BUILD_DIR/release/node-subtensor" purge-chain -y --base-path /tmp/alice --chain="$FULL_PATH" >/dev/null 2>&1
+  "$BUILD_DIR/release/node-subtensor" purge-chain -y --base-path "$BOB_BASE_PATH" --chain="$FULL_PATH" >/dev/null 2>&1
+  "$BUILD_DIR/release/node-subtensor" purge-chain -y --base-path "$ALICE_BASE_PATH" --chain="$FULL_PATH" >/dev/null 2>&1
   echo "*** Previous chainstate purged"
 fi
 
@@ -82,7 +109,7 @@ if [ $BUILD_ONLY -eq 0 ]; then
 
   alice_start=(
     "$BUILD_DIR/release/node-subtensor"
-    --base-path /tmp/alice
+    --base-path "$ALICE_BASE_PATH"
     --chain="$FULL_PATH"
     --alice
     --port 30334
@@ -96,7 +123,7 @@ if [ $BUILD_ONLY -eq 0 ]; then
 
   bob_start=(
     "$BUILD_DIR/release/node-subtensor"
-    --base-path /tmp/bob
+    --base-path "$BOB_BASE_PATH"
     --chain="$FULL_PATH"
     --bob
     --port 30335
